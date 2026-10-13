@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>組織學 Vol.8 皮表系統 複習測驗系統（50題庫+共筆切片圖譜）</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 頂部導航列 -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand-area">
+        <span class="brand-badge">VOL.8</span>
+        <h1 class="brand-title">皮表系統 隨機抽考</h1>
+      </div>
+      <div class="header-actions">
+        <!-- 題量切換：20題抽考 / 50題全刷 -->
+        <button id="btn-session-mode" class="btn-pill" title="切換抽考題量">
+          <span id="session-icon">🎯</span>
+          <span id="session-text">抽考20題</span>
+        </button>
+        <!-- 即時刷題 / 模擬測驗 -->
+        <button id="btn-mode-toggle" class="btn-pill" title="切換作答模式">
+          <span id="mode-icon">⚡</span>
+          <span id="mode-text">即時刷題</span>
+        </button>
+        <!-- 抽新題組 -->
+        <button id="btn-draw-new" class="btn-icon" title="換一組全新20題">
+          <span>🎲</span>
+        </button>
+        <!-- 題號板 -->
+        <button id="btn-open-palette" class="btn-icon" title="查看題號導航板">
+          <span>☰</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 進度與統計 -->
+    <div class="header-meta">
+      <div class="progress-bar-bg">
+        <div id="progress-bar" class="progress-bar-fill"></div>
+      </div>
+      <div class="stats-row">
+        <span class="stat-item">本輪題目 <strong id="stat-current-num">1</strong> / <span id="stat-total-num">20</span></span>
+        <span class="stat-item">即時正確率 <strong id="stat-accuracy">--</strong></span>
+        <span class="stat-item">已作答 <strong id="stat-answered-count">0</strong> 題</span>
+      </div>
+    </div>
+
+    <!-- 類別篩選滑動列 -->
+    <div class="filter-bar" id="filter-bar">
+      <button class="chip-filter active" data-filter="all">本輪題目 (<span id="count-all">20</span>)</button>
+      <button class="chip-filter" data-filter="表皮分層">表皮分層</button>
+      <button class="chip-filter" data-filter="表皮細胞">表皮細胞</button>
+      <button class="chip-filter" data-filter="表皮生理">表皮生理</button>
+      <button class="chip-filter" data-filter="真皮組織">真皮組織</button>
+      <button class="chip-filter" data-filter="皮膚腺體">皮膚腺體</button>
+      <button class="chip-filter" data-filter="毛髮指甲">毛髮指甲</button>
+      <button class="chip-filter" data-filter="感覺受器">感覺受器</button>
+      <button class="chip-filter" data-filter="實驗跑台">實驗跑台</button>
+      <button class="chip-filter" data-filter="臨床病理">臨床病理</button>
+      <button class="chip-filter" data-filter="wrong">✕ 錯題 (<span id="count-wrong">0</span>)</button>
+      <button class="chip-filter" data-filter="bookmarked">★ 收藏 (<span id="count-bookmarked">0</span>)</button>
+    </div>
+  </header>
+
+  <!-- 主做題區 -->
+  <main class="app-main" id="app-main">
+    <div class="card-question" id="question-card">
+      <div class="card-header">
+        <div class="card-tags">
+          <span class="tag-num" id="card-q-index">Q1</span>
+          <span class="tag-cat" id="card-q-cat">表皮分層</span>
+          <span class="tag-pool" id="card-pool-id" style="font-size: 11px; color: var(--text-dim); margin-left: 4px;">#1</span>
+        </div>
+        <button class="btn-bookmark" id="btn-card-bookmark" title="收藏本題">★</button>
+      </div>
+
+      <div class="question-stem" id="card-q-stem">
+        題目加載中...
+      </div>
+
+      <!-- 共筆截圖 / 切片參考圖顯示區 -->
+      <div class="question-image-box" id="card-image-box" style="display: none;">
+        <!-- 動態注入圖片 -->
+      </div>
+
+      <div class="options-list" id="card-options-list">
+        <!-- 選項動態生成 -->
+      </div>
+
+      <!-- 詳解區（即時模式點選後展開，或交卷後展開） -->
+      <div class="explanation-box" id="card-explanation" style="display: none;">
+        <div class="explanation-header">
+          <span class="result-badge" id="card-result-badge">正確</span>
+          <span class="ref-pill" id="card-ref-pill">共筆 Vol.8</span>
+        </div>
+        <div class="explanation-content" id="card-explanation-text">
+          詳解內容
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部控制列（固定底端，方便通勤單手操作） -->
+  <footer class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="nav-btn" id="btn-prev">← 上一題</button>
+      <button class="nav-btn" id="btn-palette-bottom">題號板</button>
+      <button class="nav-btn primary" id="btn-next">下一題 →</button>
+    </div>
+  </footer>
+
+  <!-- 題號導航 Modal -->
+  <div class="modal-overlay" id="palette-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">題號導航板（本輪測驗）</h2>
+        <button class="btn-icon" id="btn-close-palette">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="palette-grid" id="palette-grid">
+          <!-- 題號按鈕動態生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 圖片光箱放大 Modal（Lightbox） -->
+  <div class="modal-overlay" id="lightbox-modal">
+    <div class="lightbox-container">
+      <button class="lightbox-close-btn" id="btn-close-lightbox" title="關閉放大">✕</button>
+      <img id="lightbox-img" class="lightbox-img" src="" alt="放大檢視共筆切片">
+    </div>
+  </div>
+
+  <!-- 成績結算 Modal -->
+  <div class="modal-overlay" id="result-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">測驗成果統計</h2>
+        <button class="btn-icon" id="btn-close-result">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="score-summary">
+          <div class="score-circle">
+            <span class="score-num" id="modal-score-num">0</span>
+            <span class="score-total">/ 100 分</span>
+          </div>
+          <p id="modal-eval-text" style="font-weight: 600; font-size: 15px; color: var(--color-primary);"></p>
+        </div>
+
+        <div class="score-detail-row">
+          <div>答對題數：<strong id="modal-correct-count" style="color: var(--color-success);">0</strong></div>
+          <div>答錯題數：<strong id="modal-wrong-count" style="color: var(--color-danger);">0</strong></div>
+          <div>未作答：<strong id="modal-unanswered-count">0</strong></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+          <button class="nav-btn" id="btn-review-wrong">僅複習本輪錯題</button>
+          <button class="nav-btn primary" id="btn-draw-next-round">🎲 換一組全新 20 題抽考</button>
+          <button class="nav-btn" id="btn-restart-quiz" style="font-size: 13px; color: var(--text-muted);">重做本輪題目</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
